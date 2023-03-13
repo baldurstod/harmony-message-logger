@@ -1,0 +1,9 @@
+{
+  "name": "harmony-message-logger",
+  "version": "0.0.1",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@seald-io/nedb": "^4.0.1"
+  }
+}
