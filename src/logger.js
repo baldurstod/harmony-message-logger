@@ -1,7 +1,7 @@
 import Datastore from '@seald-io/nedb';
 
 export class Logger {
-	#loggerDB;;
+	#loggerDB;
 	constructor({databasePath, autoPurge} = {}) {
 		if (!databasePath) {
 			throw 'No database path provided';
@@ -19,7 +19,6 @@ export class Logger {
 	async purgeOldMessages() {
 		const now = Date.now();
 		const numRemoved = await this.#loggerDB.removeAsync({deleteAfter: {$lt: now}}, {multi: true});
-		console.log(numRemoved);
 
 		await this.#loggerDB.compactDatafileAsync();
 	}
