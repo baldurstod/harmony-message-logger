@@ -1,8 +1,14 @@
 import Datastore from '@seald-io/nedb';
+import {setTimeoutPromise} from 'harmony-utils';
+
+const AUTO_PURGE_DELAY = 15 * 60 * 1000;
 
 export class Logger {
 	#loggerDB;
+	#closePromise;
+	#closePromiseResolve;
 	constructor({databasePath, autoPurge} = {}) {
+		this.#closePromise = new Promise(resolve => this.#closePromiseResolve = resolve);
 		if (!databasePath) {
 			throw 'No database path provided';
 		}
@@ -12,15 +18,25 @@ export class Logger {
 		}
 	}
 
+	close() {
+		this.#closePromiseResolve('closed');
+	}
+
 	async #autoPurge() {
 		await this.purgeOldMessages();
+		const raceResult = await Promise.race([this.#closePromise, setTimeoutPromise(AUTO_PURGE_DELAY)]);
+		if (raceResult != 'closed') {
+			this.#autoPurge();
+		}
 	}
 
 	async purgeOldMessages() {
-		const now = Date.now();
-		const numRemoved = await this.#loggerDB.removeAsync({deleteAfter: {$lt: now}}, {multi: true});
+		try {
+			const now = Date.now();
+			await this.#loggerDB.removeAsync({deleteAfter: {$lt: now}}, {multi: true});
 
-		await this.#loggerDB.compactDatafileAsync();
+			await this.#loggerDB.compactDatafileAsync();
+		} catch (e) {}
 	}
 
 	async addMessage(message) {
