@@ -1,13 +1,15 @@
 export class Message {
 	#id;
 	#type;
-	#message;
+	#title;
+	#content;
 	#dateCreated;
 	#deleteAfter;
-	constructor(type, message, retention) {
+	constructor(type, title, content, retention) {
 		this.#dateCreated = Date.now();
 		this.#type = type;
-		this.#message = message;
+		this.#title = title;
+		this.#content = content;
 		if (retention) {
 			this.#deleteAfter = this.#dateCreated + retention * 1000;
 		}
@@ -29,18 +31,27 @@ export class Message {
 		return this.#type;
 	}
 
-	set message(message) {
-		this.#message = message;
+	set title(title) {
+		this.#title = title;
 	}
 
-	get message() {
-		return this.#message;
+	get title() {
+		return this.#title;
+	}
+
+	set content(content) {
+		this.#content = content;
+	}
+
+	get content() {
+		return this.#content;
 	}
 
 	fromJSON(json) {
 		this.#id = json.id;
 		this.#type = json.type;
-		this.#message = json.message;
+		this.#title = json.title;
+		this.#content = json.content;
 		this.#dateCreated = json.dateCreated;
 		this.#deleteAfter = json.deleteAfter;
 	}
@@ -49,7 +60,8 @@ export class Message {
 		return {
 			id: this.#id,
 			type: this.#type,
-			message: this.#message,
+			title: this.#title,
+			content: this.#content,
 			dateCreated: this.#dateCreated,
 			deleteAfter: this.#deleteAfter,
 		}
