@@ -29,7 +29,7 @@ export class Logger {
 			await this.#loggerDB.removeAsync({deleteAfter: {$lt: now}}, {multi: true});
 			if (this.#retention !== 0) {
 				const createdBefore = now - this.#retention * 1000;
-				await this.#loggerDB.removeAsync({deleteAfter: undefined, dateCreated: {$lt: createdBefore}}, {multi: true});
+				await this.#loggerDB.removeAsync({deleteAfter: {$exists: false}, dateCreated: {$lt: createdBefore}}, {multi: true});
 			}
 
 			await this.#loggerDB.compactDatafileAsync();
