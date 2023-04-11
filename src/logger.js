@@ -6,44 +6,30 @@ const DEFAULT_RETENTION = 30 * 24 * 60 * 60;
 
 export class Logger {
 	#loggerDB;
-	#closePromise;
-	#closePromiseResolve;
 	#retention;
-	#abortController;
+	#intervalID;
 	constructor({databasePath, retention = DEFAULT_RETENTION} = {}) {
 		this.#retention = retention;
-		this.#closePromise = new Promise(resolve => this.#closePromiseResolve = resolve);
 		if (!databasePath) {
 			throw 'No database path provided';
 		}
 		this.#loggerDB = new Datastore({filename: databasePath, autoload: true});
-		this.#autoPurge();
+
+		this.#intervalID = setInterval(() => this.#purgeOldMessages(), AUTO_PURGE_DELAY);
+		this.#purgeOldMessages();
 	}
 
 	close() {
-		this.#closePromiseResolve('closed');
-		this.#abortController?.abort();
+		clearInterval(this.#intervalID);
 	}
 
-	async #autoPurge() {
-		this.#abortController = new AbortController();
-		const signal = this.#abortController.signal;
-		await this.purgeOldMessages();
-		try {
-			const raceResult = await Promise.race([this.#closePromise, setTimeoutPromise(AUTO_PURGE_DELAY, signal)]);
-			if (raceResult != 'closed') {
-				this.#autoPurge();
-			}
-		} catch (e) {}
-	}
-
-	async purgeOldMessages() {
+	async #purgeOldMessages() {
 		try {
 			const now = Date.now();
 			await this.#loggerDB.removeAsync({deleteAfter: {$lt: now}}, {multi: true});
 			if (this.#retention !== 0) {
 				const createdBefore = now - this.#retention * 1000;
-				await this.#loggerDB.removeAsync({dateCreated: {$lt: createdBefore}}, {multi: true});
+				await this.#loggerDB.removeAsync({deleteAfter: undefined, dateCreated: {$lt: createdBefore}}, {multi: true});
 			}
 
 			await this.#loggerDB.compactDatafileAsync();
