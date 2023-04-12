@@ -1,5 +1,4 @@
 import Datastore from '@seald-io/nedb';
-import {setTimeoutPromise} from 'harmony-utils';
 
 const AUTO_PURGE_DELAY = 15 * 60 * 1000;
 const DEFAULT_RETENTION = 30 * 24 * 60 * 60;

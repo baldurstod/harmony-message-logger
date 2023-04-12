@@ -4,7 +4,6 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
-    "@seald-io/nedb": "^4.0.1",
-    "harmony-utils": "github:baldurstod/harmony-utils"
+    "@seald-io/nedb": "^4.0.1"
   }
 }
